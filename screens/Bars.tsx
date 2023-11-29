@@ -12,6 +12,9 @@ export default function App() {
   
   const [darkMode, setDarkMode] = useState(true);
 
+  const [timeTrial, setTimeTrial] = useState(false);
+  const [otherMode, setOtherMode] = useState(false);
+
   let storeData = async () => {
     try {
       const stateDarkMode = true;
@@ -44,6 +47,33 @@ export default function App() {
     } else {
       storeData();
     }
+
+    const storedTimeTrial = await AsyncStorage.getItem('timeTrial');
+
+    if(storedTimeTrial !== null && storedTimeTrial !== undefined){
+
+      try {
+        const storedValue = await AsyncStorage.getItem('timeTrial');
+        if (storedValue !== null) {
+          const parsedValue = JSON.parse(storedValue);
+          setTimeTrial(parsedValue);
+          console.log("eheheh");
+        } else {
+          console.log("No hay valor almacenado para 'darkMode'");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+
+    }else{
+      try {
+        const stateModes = true;
+        await AsyncStorage.setItem('timeTrial', JSON.stringify(stateModes));
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
   };
   
   checkAndHandleData();
@@ -52,6 +82,16 @@ export default function App() {
 
   const handleBackClick = () => {
     navigation.navigate("Game");
+  }
+
+  const handleTimeTrialClick = () => {
+    checkAndHandleData();
+    console.log(timeTrial);
+  }
+
+  const handleOtherModeClick = () => {
+    setOtherMode(true);
+    console.log(otherMode);
   }
 
   const selectedStyles = darkMode ? stylesDarkMode : stylesLightMode;
@@ -72,7 +112,7 @@ export default function App() {
 
     <View style={selectedStyles.contraReloj}>
         
-        <TouchableOpacity style={selectedStyles.contraReloj}>
+        <TouchableOpacity style={selectedStyles.contraReloj} onPress={handleTimeTrialClick}>
           <Text style={selectedStyles.textContraReloj}>
             TIME TRIAL
           </Text>
@@ -84,7 +124,7 @@ export default function App() {
 
       <View style={selectedStyles.otherMode}>
         
-        <TouchableOpacity style={selectedStyles.otherMode}>
+        <TouchableOpacity style={selectedStyles.otherMode} onPress={handleOtherModeClick}>
           <Text style={selectedStyles.textOtherMode}>
             OTHER MODE
           </Text>
