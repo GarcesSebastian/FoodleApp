@@ -3,11 +3,65 @@ import { View, StyleSheet, Text, TouchableOpacity, Dimensions, Image } from 'rea
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import SwitchToggle from 'react-native-switch-toggle';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
 export default function App() {
+
+  const [darkMode, setDarkMode] = useState(true);
+
+  let setStoreData = async (date: boolean) => {{
+    try{
+      const stateDarkMode = date;
+      setDarkMode(stateDarkMode);
+      await AsyncStorage.setItem('darkMode', JSON.stringify(stateDarkMode));
+    }catch(error){
+      console.log(error);
+    }
+  }}
+
+  let storeData = async () => {
+    try {
+      const stateDarkMode = true;
+      setDarkMode(stateDarkMode);
+      await AsyncStorage.setItem('darkMode', JSON.stringify(stateDarkMode));
+    } catch (error) {
+      console.log(error);
+    }
+  };  
+  
+  let retrieveData = async () => {
+    try {
+      const storedValue = await AsyncStorage.getItem('darkMode');
+      if (storedValue !== null) {
+        const parsedValue = JSON.parse(storedValue);
+        setDarkMode(parsedValue);
+
+        if(parsedValue){
+          setToggled(true);
+        }else{
+          setToggled(false);
+        }
+      } else {
+        console.log("No hay valor almacenado para 'darkMode'");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };  
+  
+  let checkAndHandleData = async () => {
+    const storedData = await AsyncStorage.getItem('darkMode');
+  
+    if (storedData !== null && storedData !== undefined) {
+      retrieveData();
+    } else {
+      storeData();
+    }
+  };
+  
+  checkAndHandleData();
 
   const navigation = useNavigation();
 
@@ -19,23 +73,26 @@ export default function App() {
 
   const handleToggle = () => {
     setToggled(!isToggled);
+    setStoreData(!isToggled);
   };
 
-  return (
-    <View style={styles.container}>
+  const selectedStyles = darkMode ? stylesDarkMode : stylesLightMode;
 
-      <View style={styles.contentNav}>
-        <TouchableOpacity style={styles.contentElementsNav} onPress={handleBackClick}>
-            <Icon name="arrow-left" size={width * 0.08} color="white" />
-            <Text style={styles.titleContentNav}>
+  return (
+    <View style={selectedStyles.container}>
+
+      <View style={selectedStyles.contentNav}>
+        <TouchableOpacity style={selectedStyles.contentElementsNav} onPress={handleBackClick}>
+            <Icon style={selectedStyles.iconMI} name="arrow-left" size={width * 0.08}/>
+            <Text style={selectedStyles.titleContentNav}>
               Settings
             </Text>
         </TouchableOpacity>
       </View>
 
-    <View style={styles.contentCenter}>
+    <View style={selectedStyles.contentCenter}>
 
-      <Text style={styles.textDarkMode}>
+      <Text style={selectedStyles.textDarkMode}>
         Dark mode
       </Text>
 
@@ -63,7 +120,8 @@ export default function App() {
     </View>
   );
 }
-const styles = StyleSheet.create({
+
+const stylesDarkMode = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgb(19, 20, 28)',
@@ -72,7 +130,7 @@ const styles = StyleSheet.create({
   },
   contentNav: {
     position: "absolute",
-    top: height * 0.03,
+    top: height * 0.06,
     padding: width * 0.04,
     width: "100%",
     height: "auto",
@@ -96,7 +154,7 @@ const styles = StyleSheet.create({
   },
   contentCenter: {
     position: "absolute",
-    top: height * 0.12,
+    top: height * 0.15,
     padding: width * 0.04,
     width: "100%",
     height: "auto",
@@ -110,5 +168,62 @@ const styles = StyleSheet.create({
     fontSize: width * 0.065,
     fontWeight: "bold",
     color: "white"
+  },
+  iconMI: {
+    color: "white"
   }
 });
+
+const stylesLightMode = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contentNav: {
+    position: "absolute",
+    top: height * 0.06,
+    padding: width * 0.04,
+    width: "100%",
+    height: "auto",
+    flexDirection: 'row',
+    justifyContent: 'left',
+    alignItems: 'center',
+    gap: 30
+  },
+  contentElementsNav: {
+    width: "auto",
+    height: "auto",
+    flexDirection: 'row',
+    justifyContent: 'left',
+    alignItems: 'center',
+    gap: 30
+  },
+  titleContentNav: {
+    fontSize: width * 0.065,
+    fontWeight: "bold",
+    color: "black"
+  },
+  contentCenter: {
+    position: "absolute",
+    top: height * 0.15,
+    padding: width * 0.04,
+    width: "100%",
+    height: "auto",
+    display: "flex",
+    flexDirection: 'row',
+    justifyContent: 'left',
+    alignItems: 'center',
+    gap: 30,
+  },
+  textDarkMode: {
+    fontSize: width * 0.065,
+    fontWeight: "bold",
+    color: "black"
+  },
+  iconMI: {
+    color: "black"
+  }
+});
+

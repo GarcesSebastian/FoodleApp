@@ -2,10 +2,59 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
 export default function App() {
+  
+  const clearStorage = async () => {
+    try {
+      await AsyncStorage.clear();
+      console.log('¡Almacenamiento borrado con éxito!');
+    } catch (error) {
+      console.error('Error al borrar el almacenamiento:', error);
+    }
+  };
+
+  const [darkMode, setDarkMode] = useState(true);
+
+  let storeData = async () => {
+    try {
+      const stateDarkMode = true;
+      setDarkMode(stateDarkMode);
+      await AsyncStorage.setItem('darkMode', JSON.stringify(stateDarkMode));
+    } catch (error) {
+      console.log(error);
+    }
+  };  
+  
+  let retrieveData = async () => {
+    try {
+      const storedValue = await AsyncStorage.getItem('darkMode');
+      if (storedValue !== null) {
+        const parsedValue = JSON.parse(storedValue);
+        setDarkMode(parsedValue);
+      } else {
+        console.log("No hay valor almacenado para 'darkMode'");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };  
+  
+  let checkAndHandleData = async () => {
+    const storedData = await AsyncStorage.getItem('darkMode');
+  
+    if (storedData !== null && storedData !== undefined) {
+      retrieveData();
+    } else {
+      storeData();
+    }
+  };
+  
+  console.log(darkMode);
 
   const navigation = useNavigation();
 
@@ -15,7 +64,25 @@ export default function App() {
     ["", "", "", "", ""]
   );
 
+  useFocusEffect(
+    React.useCallback(() => {
+      let checkAndHandleData = async () => {
+        const storedData = await AsyncStorage.getItem('darkMode');
+  
+        if (storedData !== null && storedData !== undefined) {
+          retrieveData();
+        } else {
+          storeData();
+        }
+      };
+  
+      checkAndHandleData();
+  
+    }, [])
+  );
+
   useEffect(() => {
+
     const generateRandomMatrix = () => {
       const newMatrizFinally = [...matrizFinally];
 
@@ -29,9 +96,6 @@ export default function App() {
     generateRandomMatrix();
     
   }, []); 
-
-  console.log(matrizFinally);
-
 
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [rowOne, setRowOne] = useState(true);
@@ -342,10 +406,6 @@ export default function App() {
     }
 
   };
-  
-  console.log(rowsGreen);
-  // console.log(matriz);
-  // console.log(rowTwo);
 
   const images = {
     1: require('../img/food/cookie.png'),
@@ -561,25 +621,27 @@ export default function App() {
     }
   };
 
+  const selectedStyles = darkMode ? stylesDarkMode : stylesLightMode;
+
   return (
-    <View style={styles.container}>
-      <View style={styles.contentNav}>
+    <View style={selectedStyles.container}>
+      <View style={selectedStyles.contentNav}>
         <TouchableOpacity onPress={handleBarsClick}>
-          <Icon name="bars" size={width * 0.08} color="white" />
+          <Icon style={selectedStyles.iconMI} name="bars" size={width * 0.08} />
         </TouchableOpacity>
-        <Text style={styles.titleContentNav}>FOODLE</Text>
+        <Text style={selectedStyles.titleContentNav}>FOODLE</Text>
         <TouchableOpacity onPress={handleCogClick}>
-          <Icon name="cog" size={width * 0.08} color="white" />
+          <Icon style={selectedStyles.iconMI} name="cog" size={width * 0.08} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.containerGame}>
+      <View style={selectedStyles.containerGame}>
         {matriz.map((row, rowIndex) => (
-          <View style={styles.rows} key={rowIndex}>
+          <View style={selectedStyles.rows} key={rowIndex}>
             {row.map((cell, colIndex) => (
               <View
                 style={{
-                  ...styles.borderImage,
+                  ...selectedStyles.borderImage,
 
                   ...(colIndex === 0 && rowsYellow[rowIndex][0] !== "" && { borderColor: 'yellow' }),
                   ...(colIndex === 1 && rowsYellow[rowIndex][1] !== "" && { borderColor: 'yellow' }),
@@ -599,7 +661,7 @@ export default function App() {
               >
                 <Image
                   source={cell !== "" ? images[parseInt(cell)] : require('../img/nada2.png')}
-                  style={styles.rowImg}
+                  style={selectedStyles.rowImg}
                   resizeMode="cover"
                 />
               </View>
@@ -608,12 +670,12 @@ export default function App() {
         ))}
       </View>
 
-      <View style={styles.containerBoard}>
-        <View style={styles.rowsBoard}>
+      <View style={selectedStyles.containerBoard}>
+        <View style={selectedStyles.rowsBoard}>
           {Array.from({ length: 5 }, (_, rowIndex) => (
             <TouchableOpacity onPress={() => handleImageClick(rowIndex + 1)} data-id='1' key={rowIndex}>
                 <View style={{
-                  ...styles.contentBoardImg, 
+                  ...selectedStyles.contentBoardImg, 
 
                   //Obtener valores grises
 
@@ -714,7 +776,7 @@ export default function App() {
                 }}>
                 <Image
                   source={images[rowIndex + 1]}
-                  style={styles.rowImgFinally}
+                  style={selectedStyles.rowImgFinally}
                   resizeMode="cover"
                 />
               </View>
@@ -722,11 +784,11 @@ export default function App() {
           ))}
         </View>
 
-        <View style={styles.rowsBoard}>
+        <View style={selectedStyles.rowsBoard}>
           {Array.from({ length: 5 }, (_, rowIndex) => (
             <TouchableOpacity onPress={() => handleImageClick(rowIndex + 6)} data-id='1' key={rowIndex}>
                 <View style={{
-                  ...styles.contentBoardImg, 
+                  ...selectedStyles.contentBoardImg, 
 
                   //Obtener valores grises
 
@@ -827,7 +889,7 @@ export default function App() {
                 }}>
                 <Image
                   source={images[rowIndex + 6]}
-                  style={styles.rowImgFinally}
+                  style={selectedStyles.rowImgFinally}
                   resizeMode="cover"
                 />
               </View>
@@ -835,22 +897,22 @@ export default function App() {
           ))}
         </View>
 
-        <View style={styles.rowsBoardFinally}>
+        <View style={selectedStyles.rowsBoardFinally}>
           <TouchableOpacity onPress={handleConfirmClick}>
-            <View style={styles.contentBoardImgFinally}>
+            <View style={selectedStyles.contentBoardImgFinally}>
               <Image
                 source={require('../img/marca-de-verificacion.png')}
-                style={styles.rowImgFinally}
+                style={selectedStyles.rowImgFinally}
                 resizeMode="cover"
               />
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleSuprClick}>
-            <View style={styles.contentBoardImgFinally}>
+            <View style={selectedStyles.contentBoardImgFinally}>
               <Image
                 source={require('../img/eliminar.png')}
-                style={styles.rowImgFinally}
+                style={selectedStyles.rowImgFinally}
                 resizeMode="cover"
               />
             </View>
@@ -860,7 +922,121 @@ export default function App() {
     </View>
   );
 }
-const styles = StyleSheet.create({
+
+const stylesLightMode = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contentNav: {
+    position: "absolute",
+    top: height * 0.06,
+    padding: width * 0.04,
+    width: "100%",
+    height: "auto",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  titleContentNav: {
+    fontSize: width * 0.06,
+    fontWeight: "bold",
+    letterSpacing: width * 0.015,
+    color: "black",
+  },
+  containerGame: {
+    position: "absolute",
+    top: height * 0.16,
+    padding: width * 0.02,
+    width: "100%",
+    height: "auto",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems:"center",
+    gap: height * 0.01,
+  },
+  rows: {
+    width: "100%",
+    height: "auto",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems:"center",
+    paddingTop: 8,
+    paddingBottom: 8,
+    gap: width * 0.06
+  },
+  borderImage: {
+    borderColor: "rgb(200, 200, 200)",
+    borderWidth: 2,
+    padding: 8,
+    borderRadius: 3
+  },
+  rowImg: {
+    width: 30,
+    height: 30
+  },
+  rowImgFinally: {
+    width: 36,
+    height: 36
+  },
+  containerBoard: {
+    position: "absolute",
+    top: height * 0.7,
+    width: "100%",
+    height: "auto",
+    padding: 10,
+    gap: 3,
+    display: "flex",
+    flexDirection: "column"
+  },
+  rowsBoard: {
+    width: "100%",
+    height: "auto",
+    padding: 3,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: width * 0.03
+  },
+  rowsBoardFinally: {
+    width: "100%",
+    height: "auto",
+    padding: 3,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    gap: width * 0.03
+  },
+  contentBoardImg: {
+    width: 60,
+    height: 60,
+    padding: 5,
+    backgroundColor: "rgb(240, 240, 240)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 3
+  },
+  contentBoardImgFinally:{
+    width: 80,
+    height: 55,
+    padding: 5,
+    backgroundColor: "rgb(240, 240, 240)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 3
+  },
+  iconMI: {
+    color: "black"
+  }
+});
+
+const stylesDarkMode = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgb(19, 20, 28)',
@@ -869,7 +1045,7 @@ const styles = StyleSheet.create({
   },
   contentNav: {
     position: "absolute",
-    top: height * 0.03,
+    top: height * 0.06,
     padding: width * 0.04,
     width: "100%",
     height: "auto",
@@ -885,7 +1061,7 @@ const styles = StyleSheet.create({
   },
   containerGame: {
     position: "absolute",
-    top: height * 0.13,
+    top: height * 0.16,
     padding: width * 0.02,
     width: "100%",
     height: "auto",
@@ -920,7 +1096,7 @@ const styles = StyleSheet.create({
   },
   containerBoard: {
     position: "absolute",
-    top: height * 0.67,
+    top: height * 0.7,
     width: "100%",
     height: "auto",
     padding: 10,
@@ -967,5 +1143,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 3
+  },
+  iconMI: {
+    color: "white"
   }
 });
+
+
