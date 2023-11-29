@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "prueba",
-    "slug": "prueba",
+    "name": "Foodle-App",
+    "slug": "Foodle-App",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,16 +15,20 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sebxstt.FoodleApp"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.sebxstt.FoodleApp"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "extra": {
+      "eas": {
+        "projectId": "4a224397-2175-4b7f-8d4e-23ccca7c9617"
+      }
     }
   }
 }
